@@ -23,9 +23,9 @@ services:
       - RABBITMQ_DEFAULT_USER=guest
       - RABBITMQ_DEFAULT_PASS=guest
 
-  celery-worker:
-    container_name: celery-worker
-    hostname: celery-worker
+  celery_worker:
+    container_name: celery_worker
+    hostname: celery_worker
     healthcheck:
       # based on process exit status 0 or 1
       test: ["CMD-SHELL", "celery status"]
@@ -54,16 +54,17 @@ services:
     ports:
       - "5555:5555"
     depends_on:
-      celery-worker:
+      celery_worker:
         condition: service_healthy
     networks:
       - celery_network
-    command: celery flower --app=celery_worker:app --persisten=True --broker=amqp://guest:guest@rabbitmq:5672/ --broker_api=http://guest:guest@rabbitmq:15672/api/
+    command: celery flower --app=celery_worker:app --persisten=True --broker=amqp://guest:guest@rabbitmq:5672/ --broker_api=http://guest:guest@rabbitmq:15672/api/ --logging=DEBUG --address=0.0.0.0
     volumes:
       - flower_data:/data
     environment:
       - CELERY_BROKER_URL=amqp://guest:guest@rabbitmq:5672/
       - CELERY_RESULT_BACKEND=rpc://guest:guest@rabbitmq:5673/
+      - FLOWER_UNAUTHENTICATED_API=true
 
 networks:
   celery_network:
@@ -71,3 +72,6 @@ networks:
 
 volumes:
  flower_data:
+
+
+ # TEST AUTH => curl -u guest:guest http://localhost:15672/api/whoami
