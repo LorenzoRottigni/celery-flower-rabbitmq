@@ -26,6 +26,9 @@ services:
   celery_worker:
     container_name: celery_worker
     hostname: celery_worker
+    build:
+      context: .
+      dockerfile: Dockerfile.celery
     healthcheck:
       # based on process exit status 0 or 1
       test: ["CMD-SHELL", "celery status"]
@@ -35,9 +38,6 @@ services:
     depends_on:
       rabbitmq:
         condition: service_healthy
-    build:
-      context: .
-      dockerfile: Dockerfile
     volumes:
       - .:/app
     environment:
@@ -51,6 +51,7 @@ services:
     image: mher/flower:latest
     container_name: flower
     hostname: flower
+    working_dir: /app
     ports:
       - "5555:5555"
     depends_on:
@@ -58,9 +59,10 @@ services:
         condition: service_healthy
     networks:
       - celery_network
-    command: celery flower --app=celery_worker:app --persisten=True --broker=amqp://guest:guest@rabbitmq:5672/ --broker_api=http://guest:guest@rabbitmq:15672/api/ --logging=DEBUG --address=0.0.0.0
+    command: celery --app=celery_worker.app --broker=amqp://guest:guest@rabbitmq:5672/ flower --persisten=True --broker_api=http://guest:guest@rabbitmq:15672/api/ --logging=DEBUG --address=0.0.0.0
     volumes:
       - flower_data:/data
+      - .:/app
     environment:
       - CELERY_BROKER_URL=amqp://guest:guest@rabbitmq:5672/
       - CELERY_RESULT_BACKEND=rpc://guest:guest@rabbitmq:5673/

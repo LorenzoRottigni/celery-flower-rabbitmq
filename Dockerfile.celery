@@ -2,15 +2,15 @@ FROM python:3.9
 
 USER root
 
-RUN mkdir -p /usr/src/app/
+RUN mkdir -p /data
 RUN mkdir -p /opt/venv/
 
-RUN chown -R daemon:daemon /usr/src/app/
+RUN chown -R daemon:daemon /data
 RUN chown -R daemon:daemon /opt/venv/
 
 USER daemon
 
-WORKDIR /usr/src/app
+WORKDIR /data
 
 COPY . .
 
